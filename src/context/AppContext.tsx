@@ -34,6 +34,7 @@ interface AppContextType {
     department?: string;
   }) => Promise<{ success: boolean; message: string }>;
   logout: () => Promise<void>;
+  updateProfile: (updatedData: Partial<UserProfile>) => Promise<{ success: boolean; message: string }>;
   switchDemoUser: (userId: string) => void;
   reportItem: (newItem: Omit<CampusItem, 'id' | 'status' | 'user_id' | 'created_at'>) => CampusItem;
   submitClaim: (itemId: string, proofAnswer: string) => { success: boolean; claimId?: string; message: string };
@@ -201,6 +202,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.warn('Sign out warning:', e);
     }
     setCurrentUser(null);
+  };
+
+  const updateProfile = async (
+    updatedData: Partial<UserProfile>
+  ): Promise<{ success: boolean; message: string }> => {
+    if (!currentUser) {
+      return { success: false, message: 'No active profile to update.' };
+    }
+
+    const updatedUser: UserProfile = {
+      ...currentUser,
+      ...updatedData,
+      updated_at: new Date().toISOString(),
+    };
+
+    setCurrentUser(updatedUser);
+
+    if (isConfigured) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({
+            name: updatedUser.name,
+            student_id: updatedUser.student_id,
+            avatar_url: updatedUser.avatar_url,
+            phone_number: updatedUser.phone_number,
+            department: updatedUser.department,
+            updated_at: updatedUser.updated_at,
+          })
+          .eq('id', updatedUser.id);
+      } catch (e: any) {
+        console.warn('Failed to update Supabase profile:', e);
+      }
+    }
+
+    return { success: true, message: 'Profile and photo updated successfully!' };
   };
 
   const switchDemoUser = (userId: string) => {
@@ -371,6 +408,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         login,
         signup,
         logout,
+        updateProfile,
         switchDemoUser,
         reportItem,
         submitClaim,
