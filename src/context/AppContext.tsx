@@ -105,10 +105,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         });
 
         if (error) {
-          return { success: false, message: error.message };
-        }
-
-        if (data.user) {
+          if (!error.message.toLowerCase().includes('fetch') && !error.message.toLowerCase().includes('network')) {
+            return { success: false, message: error.message };
+          }
+          console.warn('Supabase host unreachable, continuing with campus authentication');
+        } else if (data?.user) {
           const profile: UserProfile = {
             id: data.user.id,
             student_id: data.user.user_metadata?.student_id || `STU-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -121,7 +122,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return { success: true, message: `Welcome, ${profile.name}!` };
         }
       } catch (err: any) {
-        return { success: false, message: err.message || 'Authentication failed' };
+        console.warn('Supabase signIn exception, continuing with campus authentication:', err.message);
       }
     }
 
@@ -166,10 +167,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         });
 
         if (error) {
-          return { success: false, message: error.message };
+          if (error.message.toLowerCase().includes('fetch') || error.message.toLowerCase().includes('network')) {
+            console.warn('Supabase host unreachable, creating campus local account:', error.message);
+          } else {
+            return { success: false, message: error.message };
+          }
         }
       } catch (e: any) {
-        return { success: false, message: e.message };
+        console.warn('Supabase signup exception, falling back to local account:', e.message);
       }
     }
 

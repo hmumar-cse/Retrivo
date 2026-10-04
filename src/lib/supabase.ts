@@ -51,7 +51,11 @@ const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://retrivo-cam
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJldHJpdm8iLCJyb2xlIjoiYW5vbiJ9.placeholder-key';
 
 export const isConfigured = Boolean(
-  process.env.EXPO_PUBLIC_SUPABASE_URL && process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+  process.env.EXPO_PUBLIC_SUPABASE_URL &&
+    !process.env.EXPO_PUBLIC_SUPABASE_URL.includes('retrivo-campus.supabase.co') &&
+    !process.env.EXPO_PUBLIC_SUPABASE_URL.includes('your-project') &&
+    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY &&
+    !process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY.includes('placeholder')
 );
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
