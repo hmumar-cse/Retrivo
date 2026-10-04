@@ -11,9 +11,11 @@ import {
   Eye,
   EyeOff,
   QrCode,
+  Copy,
+  Sparkles,
 } from 'lucide-react-native';
 import { ClaimVerification, CampusItem } from '../../types/retrivo';
-import { COLORS, SPACING, RADIUS } from '../../styles/theme';
+import { COLORS, SPACING, RADIUS, SHADOWS } from '../../styles/theme';
 import { useApp } from '../../context/AppContext';
 
 interface ClaimCardProps {
@@ -58,25 +60,25 @@ export const ClaimCard: React.FC<ClaimCardProps> = ({ claim, item }) => {
 
   return (
     <View style={styles.card}>
-      {/* Status banner */}
+      {/* Top Status Header */}
       <View style={styles.header}>
         <View style={styles.statusRow}>
           {isReturned ? (
-            <View style={[styles.statusPill, { backgroundColor: COLORS.returnedSoft }]}>
+            <View style={[styles.statusPill, { backgroundColor: COLORS.returnedSoft, borderColor: COLORS.returnedBorder }]}>
               <CheckCircle2 size={13} color={COLORS.returned} />
               <Text style={[styles.statusPillText, { color: COLORS.returned }]}>
-                HANDOVER COMPLETED
+                HANDOVER VERIFIED
               </Text>
             </View>
           ) : isVerified ? (
-            <View style={[styles.statusPill, { backgroundColor: COLORS.foundSoft }]}>
+            <View style={[styles.statusPill, { backgroundColor: COLORS.foundSoft, borderColor: COLORS.foundBorder }]}>
               <ShieldCheck size={13} color={COLORS.found} />
               <Text style={[styles.statusPillText, { color: COLORS.found }]}>
-                OWNERSHIP VERIFIED
+                OWNERSHIP CONFIRMED
               </Text>
             </View>
           ) : (
-            <View style={[styles.statusPill, { backgroundColor: COLORS.lostSoft }]}>
+            <View style={[styles.statusPill, { backgroundColor: COLORS.lostSoft, borderColor: COLORS.lostBorder }]}>
               <Clock size={13} color={COLORS.lost} />
               <Text style={[styles.statusPillText, { color: COLORS.lost }]}>
                 PENDING PROOF REVIEW
@@ -90,32 +92,32 @@ export const ClaimCard: React.FC<ClaimCardProps> = ({ claim, item }) => {
         </Text>
       </View>
 
-      {/* Item info */}
+      {/* Item title */}
       <Text style={styles.itemTitle}>{item?.title || 'Reported Campus Asset'}</Text>
 
-      {/* Claimant Details */}
+      {/* Claimant Badge */}
       <View style={styles.claimantInfo}>
-        <User size={14} color={COLORS.textSecondary} />
+        <User size={13} color={COLORS.textSecondary} />
         <Text style={styles.claimantText}>
-          Claimant: <Text style={styles.bold}>{claim.claimant?.name || 'Verified Student'}</Text>
+          Claimant: <Text style={styles.bold}>{claim.claimant?.name || 'Campus Student'}</Text>
           {claim.claimant?.student_id ? ` (${claim.claimant.student_id})` : ''}
         </Text>
       </View>
 
       {/* Hidden Ownership Challenge & Response Box */}
       <View style={styles.proofContainer}>
-        <Text style={styles.proofSectionTitle}>Hidden Detail Ownership Challenge:</Text>
+        <Text style={styles.proofSectionTitle}>Double-Blind Ownership Challenge:</Text>
 
         <View style={styles.proofBox}>
-          <Text style={styles.proofLabel}>Claimant's Submitted Proof:</Text>
+          <Text style={styles.proofLabel}>Claimant's Submitted Proof Answer:</Text>
           <Text style={styles.proofAnswer}>"{claim.proof_answer}"</Text>
         </View>
 
-        {/* If user is the item reporter, they can compare with the true hidden clue */}
+        {/* If user is the item reporter, compare with true hidden clue */}
         {isReporter && item?.hidden_clue && (
           <View style={styles.hiddenClueCompareBox}>
             <View style={styles.revealRow}>
-              <Text style={styles.trueClueLabel}>Your Private Hidden Clue (Secret):</Text>
+              <Text style={styles.trueClueLabel}>Your Private Secret Clue (Reporter Vault):</Text>
               <TouchableOpacity
                 onPress={() => setShowTrueClue(!showTrueClue)}
                 style={styles.revealBtn}
@@ -170,17 +172,17 @@ export const ClaimCard: React.FC<ClaimCardProps> = ({ claim, item }) => {
           </View>
 
           <Text style={styles.handoverExplainer}>
-            Meet safely on campus (e.g. Campus Security or Library Desk). Show or enter the One-Time Handover PIN to conclude the return:
+            Meet safely on campus (e.g. Campus Police or Library Help Desk). Show or enter this One-Time Handover PIN to conclude the return:
           </Text>
 
-          {/* Secure One-Time PIN Display */}
+          {/* Secure One-Time PIN Digital Pass Card */}
           <View style={styles.pinDisplayBox}>
-            <Text style={styles.pinLabel}>ONE-TIME HANDOVER PIN</Text>
-            <Text style={styles.pinCode}>{claim.handover_code || '492-183'}</Text>
+            <Text style={styles.pinLabel}>SECURE HANDOVER PIN</Text>
+            <Text style={styles.pinCode}>{claim.handover_code || '849-216'}</Text>
             <Text style={styles.pinSubtext}>
               {isClaimant
-                ? 'Share this PIN with the finder during physical exchange'
-                : 'Ask the claimant for this PIN to verify identity'}
+                ? '👉 Present this PIN to the finder during handover'
+                : '👉 Ask claimant for their PIN to confirm handover'}
             </Text>
           </View>
 
@@ -213,7 +215,7 @@ export const ClaimCard: React.FC<ClaimCardProps> = ({ claim, item }) => {
         <View style={styles.completedBox}>
           <CheckCircle2 size={16} color={COLORS.returned} />
           <Text style={styles.completedText}>
-            Handover confirmed on {new Date(claim.handover_confirmed_at || '').toLocaleDateString()}. Asset successfully restored to owner!
+            Handover confirmed on {new Date(claim.handover_confirmed_at || '').toLocaleDateString()}. Asset successfully returned to owner!
           </Text>
         </View>
       )}
@@ -229,6 +231,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.border,
+    ...SHADOWS.sm,
   },
   header: {
     flexDirection: 'row',
@@ -243,25 +246,28 @@ const styles = StyleSheet.create({
   statusPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
+    gap: 5,
+    paddingHorizontal: 9,
     paddingVertical: 3,
     borderRadius: RADIUS.full,
+    borderWidth: 1,
   },
   statusPillText: {
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: '900',
     letterSpacing: 0.5,
   },
   dateText: {
     fontSize: 11,
     color: COLORS.textMuted,
+    fontWeight: '500',
   },
   itemTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.textPrimary,
-    marginBottom: 6,
+    marginBottom: 5,
+    lineHeight: 20,
   },
   claimantInfo: {
     flexDirection: 'row',
@@ -283,14 +289,15 @@ const styles = StyleSheet.create({
     padding: SPACING.sm,
     marginVertical: SPACING.sm,
     borderWidth: 1,
-    borderColor: COLORS.divider,
+    borderColor: COLORS.border,
   },
   proofSectionTitle: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.textSecondary,
     marginBottom: 6,
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   proofBox: {
     backgroundColor: COLORS.card,
@@ -303,18 +310,22 @@ const styles = StyleSheet.create({
   proofLabel: {
     fontSize: 10,
     color: COLORS.textMuted,
-    fontWeight: '600',
-    marginBottom: 2,
+    fontWeight: '700',
+    marginBottom: 3,
+    textTransform: 'uppercase',
   },
   proofAnswer: {
     fontSize: 13,
     fontStyle: 'italic',
     color: COLORS.textPrimary,
+    lineHeight: 18,
   },
   hiddenClueCompareBox: {
     backgroundColor: COLORS.primarySoft,
     padding: SPACING.sm,
     borderRadius: RADIUS.sm,
+    borderWidth: 1,
+    borderColor: COLORS.primaryBorder,
   },
   revealRow: {
     flexDirection: 'row',
@@ -325,7 +336,8 @@ const styles = StyleSheet.create({
   trueClueLabel: {
     fontSize: 10,
     color: COLORS.primaryDark,
-    fontWeight: '700',
+    fontWeight: '800',
+    textTransform: 'uppercase',
   },
   revealBtn: {
     flexDirection: 'row',
@@ -335,12 +347,12 @@ const styles = StyleSheet.create({
   revealText: {
     fontSize: 11,
     color: COLORS.primary,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   trueClueText: {
     fontSize: 12,
     color: COLORS.primaryDark,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   hiddenPlaceholder: {
     fontSize: 12,
@@ -357,25 +369,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
+    paddingVertical: 11,
     borderRadius: RADIUS.md,
     gap: 6,
   },
   btnText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   rejectBtn: {
     backgroundColor: COLORS.dangerSoft,
     borderWidth: 1,
-    borderColor: COLORS.danger,
+    borderColor: COLORS.dangerBorder,
   },
   approveBtn: {
     backgroundColor: COLORS.primary,
+    ...SHADOWS.sm,
   },
   handoverContainer: {
     marginTop: SPACING.md,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.card,
     borderRadius: RADIUS.md,
     padding: SPACING.md,
     borderWidth: 1,
@@ -389,7 +402,7 @@ const styles = StyleSheet.create({
   },
   handoverTitle: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.textPrimary,
   },
   handoverExplainer: {
@@ -399,31 +412,33 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   pinDisplayBox: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.primarySoft,
     borderRadius: RADIUS.md,
-    padding: SPACING.sm,
+    padding: SPACING.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.borderDark,
+    borderColor: COLORS.primaryBorder,
     marginBottom: SPACING.sm,
   },
   pinLabel: {
     fontSize: 10,
     fontWeight: '800',
-    color: COLORS.textMuted,
-    letterSpacing: 1,
+    color: COLORS.primaryDark,
+    letterSpacing: 1.5,
   },
   pinCode: {
-    fontSize: 26,
+    fontSize: 30,
     fontWeight: '900',
     color: COLORS.primary,
-    letterSpacing: 4,
+    letterSpacing: 6,
     marginVertical: 4,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   pinSubtext: {
-    fontSize: 10,
-    color: COLORS.textMuted,
+    fontSize: 11,
+    color: COLORS.textSecondary,
     textAlign: 'center',
+    fontWeight: '500',
   },
   verifyInputRow: {
     flexDirection: 'row',
@@ -431,10 +446,10 @@ const styles = StyleSheet.create({
   },
   pinInput: {
     flex: 1,
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.background,
     borderRadius: RADIUS.md,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 9,
     borderWidth: 1,
     borderColor: COLORS.border,
     fontSize: 13,
@@ -446,17 +461,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    ...SHADOWS.sm,
   },
   confirmPinBtnText: {
     color: '#FFF',
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   feedbackText: {
     fontSize: 11,
     color: COLORS.primary,
     marginTop: 6,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   completedBox: {
     marginTop: SPACING.sm,
@@ -466,12 +482,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.returnedSoft,
     padding: SPACING.sm,
     borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.returnedBorder,
   },
   completedText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.returned,
     flex: 1,
   },
 });
-

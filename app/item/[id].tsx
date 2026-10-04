@@ -28,7 +28,7 @@ import {
   X,
 } from 'lucide-react-native';
 import { useApp } from '../../src/context/AppContext';
-import { COLORS, SPACING, RADIUS } from '../../src/styles/theme';
+import { COLORS, SPACING, RADIUS, SHADOWS } from '../../src/styles/theme';
 import { ClaimCard } from '../../src/components/claims/ClaimCard';
 import { MatchCard } from '../../src/components/items/MatchCard';
 

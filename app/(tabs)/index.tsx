@@ -10,15 +10,26 @@ import {
   ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Search, Filter, Sparkles, Plus } from 'lucide-react-native';
+import {
+  Search,
+  Filter,
+  Sparkles,
+  Plus,
+  Compass,
+  AlertCircle,
+  CheckCircle,
+  X,
+  TrendingUp,
+  MapPin,
+} from 'lucide-react-native';
 import { Header } from '../../src/components/common/Header';
 import { ItemCard } from '../../src/components/items/ItemCard';
 import { useApp } from '../../src/context/AppContext';
-import { COLORS, SPACING, RADIUS } from '../../src/styles/theme';
+import { COLORS, SPACING, RADIUS, SHADOWS } from '../../src/styles/theme';
 import { ItemCategory, ItemType } from '../../src/types/retrivo';
 
 const CATEGORIES: { label: string; value: ItemCategory | 'all' }[] = [
-  { label: 'All', value: 'all' },
+  { label: 'All Items', value: 'all' },
   { label: 'Electronics', value: 'electronics' },
   { label: 'ID Cards', value: 'identification' },
   { label: 'Keys', value: 'keys' },
@@ -37,13 +48,9 @@ export default function FeedScreen() {
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
-      // Type filter
       if (typeFilter !== 'all' && item.type !== typeFilter) return false;
-
-      // Category filter
       if (selectedCategory !== 'all' && item.category !== selectedCategory) return false;
 
-      // Search query
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
         const matchesTitle = item.title.toLowerCase().includes(query);
@@ -56,14 +63,40 @@ export default function FeedScreen() {
     });
   }, [items, typeFilter, selectedCategory, searchQuery]);
 
+  const lostCount = items.filter((i) => i.type === 'lost').length;
+  const foundCount = items.filter((i) => i.type === 'found').length;
+  const activeMatchesCount = matches.length;
+
   return (
     <SafeAreaView style={styles.safe}>
       <Header subtitle="Campus Recovery Feed" />
 
-      {/* Search Bar */}
+      {/* Campus Recovery Quick Stats Banner */}
+      <View style={styles.statsBanner}>
+        <View style={styles.statItem}>
+          <TrendingUp size={14} color={COLORS.primary} />
+          <Text style={styles.statText}>
+            <Text style={styles.statBold}>{activeMatchesCount}</Text> AI Matches Active
+          </Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <Text style={styles.statText}>
+            <Text style={[styles.statBold, { color: COLORS.lost }]}>{lostCount}</Text> Lost
+          </Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <Text style={styles.statText}>
+            <Text style={[styles.statBold, { color: COLORS.found }]}>{foundCount}</Text> Found
+          </Text>
+        </View>
+      </View>
+
+      {/* Search Input Bar */}
       <View style={styles.searchSection}>
         <View style={styles.searchBox}>
-          <Search size={18} color={COLORS.textMuted} />
+          <Search size={18} color={COLORS.primary} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search items, keywords, buildings..."
@@ -71,16 +104,22 @@ export default function FeedScreen() {
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <X size={16} color={COLORS.textMuted} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
-      {/* Segmented Type Control: ALL | LOST | FOUND */}
+      {/* Segmented Control Switcher */}
       <View style={styles.segmentedControl}>
         {(['all', 'lost', 'found'] as const).map((type) => {
           const isActive = typeFilter === type;
           return (
             <TouchableOpacity
               key={type}
+              activeOpacity={0.8}
               style={[
                 styles.segmentTab,
                 isActive && styles.segmentTabActive,
@@ -96,14 +135,18 @@ export default function FeedScreen() {
                   isActive && styles.segmentTextActive,
                 ]}
               >
-                {type === 'all' ? 'All Feed' : type === 'lost' ? 'Lost Items' : 'Found Items'}
+                {type === 'all'
+                  ? `All Feed (${items.length})`
+                  : type === 'lost'
+                  ? `Lost (${lostCount})`
+                  : `Found (${foundCount})`}
               </Text>
             </TouchableOpacity>
           );
         })}
       </View>
 
-      {/* Category Filter Pills */}
+      {/* Category Horizontal Pills */}
       <View style={styles.categoryContainer}>
         <ScrollView
           horizontal
@@ -115,6 +158,7 @@ export default function FeedScreen() {
             return (
               <TouchableOpacity
                 key={cat.value}
+                activeOpacity={0.8}
                 style={[
                   styles.categoryPill,
                   isActive && styles.categoryPillActive,
@@ -135,7 +179,7 @@ export default function FeedScreen() {
         </ScrollView>
       </View>
 
-      {/* Main List */}
+      {/* Items Feed List */}
       <FlatList
         data={filteredItems}
         keyExtractor={(item) => item.id}
@@ -156,22 +200,31 @@ export default function FeedScreen() {
         }}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Sparkles size={36} color={COLORS.textMuted} />
+            <View style={styles.emptyIconCircle}>
+              <Sparkles size={32} color={COLORS.primary} />
+            </View>
             <Text style={styles.emptyTitle}>No Campus Items Found</Text>
             <Text style={styles.emptySubtitle}>
               Try adjusting your search criteria or report a new lost or found item.
             </Text>
+            <TouchableOpacity
+              style={styles.emptyActionBtn}
+              onPress={() => router.push('/(tabs)/report')}
+            >
+              <Plus size={16} color="#FFF" />
+              <Text style={styles.emptyActionText}>Report an Item</Text>
+            </TouchableOpacity>
           </View>
         }
       />
 
-      {/* Floating Action Button for Fast Report */}
+      {/* Floating Action Button (FAB) */}
       <TouchableOpacity
         style={styles.fab}
         activeOpacity={0.85}
         onPress={() => router.push('/(tabs)/report')}
       >
-        <Plus size={24} color="#FFF" />
+        <Plus size={26} color="#FFF" />
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -182,9 +235,41 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  statsBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    backgroundColor: COLORS.card,
+    marginHorizontal: SPACING.md,
+    marginTop: SPACING.sm,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  statDivider: {
+    width: 1,
+    height: 14,
+    backgroundColor: COLORS.border,
+  },
+  statText: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    fontWeight: '600',
+  },
+  statBold: {
+    fontWeight: '900',
+    color: COLORS.primary,
+  },
   searchSection: {
     paddingHorizontal: SPACING.md,
-    paddingTop: SPACING.md,
+    paddingTop: SPACING.sm,
     paddingBottom: SPACING.xs,
   },
   searchBox: {
@@ -192,21 +277,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.md,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     borderWidth: 1,
     borderColor: COLORS.border,
-    gap: 8,
+    gap: 10,
+    ...SHADOWS.sm,
   },
   searchInput: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 11,
     fontSize: 14,
     color: COLORS.textPrimary,
   },
   segmentedControl: {
     flexDirection: 'row',
     marginHorizontal: SPACING.md,
-    marginVertical: SPACING.sm,
+    marginVertical: SPACING.xs,
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.md,
     padding: 3,
@@ -220,7 +306,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.sm,
   },
   segmentTabActive: {
-    backgroundColor: COLORS.primary,
+    ...SHADOWS.sm,
   },
   segmentText: {
     fontSize: 12,
@@ -229,18 +315,19 @@ const styles = StyleSheet.create({
   },
   segmentTextActive: {
     color: '#FFF',
+    fontWeight: '800',
   },
   categoryContainer: {
-    marginBottom: SPACING.xs,
+    marginVertical: 4,
   },
   categoryScroll: {
     paddingHorizontal: SPACING.md,
     gap: 8,
-    paddingBottom: SPACING.xs,
+    paddingBottom: 2,
   },
   categoryPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     borderRadius: RADIUS.full,
     backgroundColor: COLORS.card,
     borderWidth: 1,
@@ -248,7 +335,7 @@ const styles = StyleSheet.create({
   },
   categoryPillActive: {
     backgroundColor: COLORS.primarySoft,
-    borderColor: COLORS.primaryLight,
+    borderColor: COLORS.primaryBorder,
   },
   categoryPillText: {
     fontSize: 12,
@@ -257,21 +344,30 @@ const styles = StyleSheet.create({
   },
   categoryPillTextActive: {
     color: COLORS.primary,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   listContent: {
     padding: SPACING.md,
-    paddingBottom: 80,
+    paddingBottom: 90,
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: SPACING.xxl,
-    gap: 8,
+    paddingVertical: SPACING.xl,
+    gap: 10,
+  },
+  emptyIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
   },
   emptyTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.textPrimary,
   },
   emptySubtitle: {
@@ -279,22 +375,34 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     textAlign: 'center',
     paddingHorizontal: SPACING.lg,
+    lineHeight: 18,
+  },
+  emptyActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: RADIUS.md,
+    marginTop: 6,
+    ...SHADOWS.sm,
+  },
+  emptyActionText: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '700',
   },
   fab: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 24,
     right: 20,
-    width: 54,
-    height: 54,
+    width: 56,
+    height: 56,
     borderRadius: RADIUS.full,
     backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 5,
+    ...SHADOWS.lg,
   },
 });
-

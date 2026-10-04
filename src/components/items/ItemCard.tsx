@@ -15,9 +15,11 @@ import {
   BookOpen,
   Watch,
   Package,
+  ShieldCheck,
+  CheckCircle2,
 } from 'lucide-react-native';
 import { CampusItem, ItemCategory } from '../../types/retrivo';
-import { COLORS, SPACING, RADIUS } from '../../styles/theme';
+import { COLORS, SPACING, RADIUS, SHADOWS } from '../../styles/theme';
 
 interface ItemCardProps {
   item: CampusItem;
@@ -26,7 +28,7 @@ interface ItemCardProps {
 }
 
 const getCategoryIcon = (category: ItemCategory, color: string) => {
-  const size = 16;
+  const size = 13;
   switch (category) {
     case 'electronics':
       return <Laptop size={size} color={color} />;
@@ -62,16 +64,18 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, matchCount = 0, onPres
   const isLost = item.type === 'lost';
   const typeColor = isLost ? COLORS.lost : COLORS.found;
   const typeBg = isLost ? COLORS.lostSoft : COLORS.foundSoft;
+  const typeBorder = isLost ? COLORS.lostBorder : COLORS.foundBorder;
 
   return (
     <TouchableOpacity
-      activeOpacity={0.85}
+      activeOpacity={0.88}
       style={styles.card}
       onPress={onPress}
     >
+      {/* Top Header Row */}
       <View style={styles.headerRow}>
         <View style={styles.badgeGroup}>
-          <View style={[styles.typeBadge, { backgroundColor: typeBg }]}>
+          <View style={[styles.typeBadge, { backgroundColor: typeBg, borderColor: typeBorder }]}>
             <Text style={[styles.typeText, { color: typeColor }]}>
               {item.type.toUpperCase()}
             </Text>
@@ -84,28 +88,37 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, matchCount = 0, onPres
           </View>
         </View>
 
-        {/* Status indicator */}
-        <View style={[
-          styles.statusBadge,
-          item.status === 'returned' && { backgroundColor: COLORS.returnedSoft },
-          item.status === 'under_verification' && { backgroundColor: COLORS.verifiedSoft },
-        ]}>
-          <Text style={[
-            styles.statusText,
-            item.status === 'returned' && { color: COLORS.returned },
-            item.status === 'under_verification' && { color: COLORS.verified },
-          ]}>
+        {/* Status Pill */}
+        <View
+          style={[
+            styles.statusBadge,
+            item.status === 'returned' && styles.statusReturned,
+            item.status === 'under_verification' && styles.statusVerifying,
+          ]}
+        >
+          {item.status === 'returned' && <CheckCircle2 size={11} color={COLORS.returned} />}
+          {item.status === 'under_verification' && <ShieldCheck size={11} color={COLORS.verified} />}
+          <Text
+            style={[
+              styles.statusText,
+              item.status === 'returned' && { color: COLORS.returned },
+              item.status === 'under_verification' && { color: COLORS.verified },
+            ]}
+          >
             {item.status === 'under_verification' ? 'In Verification' : item.status}
           </Text>
         </View>
       </View>
 
+      {/* Main Body */}
       <View style={styles.bodyRow}>
         {item.image_url ? (
-          <Image source={{ uri: item.image_url }} style={styles.image} />
+          <View style={styles.imageContainer}>
+            <Image source={{ uri: item.image_url }} style={styles.image} />
+          </View>
         ) : (
           <View style={styles.imagePlaceholder}>
-            <Package size={28} color={COLORS.textMuted} />
+            <Package size={30} color={COLORS.textMuted} />
           </View>
         )}
 
@@ -117,8 +130,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, matchCount = 0, onPres
             {item.description}
           </Text>
 
+          {/* Location & Time Pills */}
           <View style={styles.metaRow}>
-            <MapPin size={13} color={COLORS.textMuted} />
+            <MapPin size={12} color={COLORS.primary} />
             <Text style={styles.metaText} numberOfLines={1}>
               {item.campus_location.building}
               {item.campus_location.floor_or_room ? ` • ${item.campus_location.floor_or_room}` : ''}
@@ -126,26 +140,31 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, matchCount = 0, onPres
           </View>
 
           <View style={styles.metaRow}>
-            <Clock size={13} color={COLORS.textMuted} />
-            <Text style={styles.metaText}>{formatTimeAgo(item.timestamp)}</Text>
+            <Clock size={12} color={COLORS.textMuted} />
+            <Text style={styles.metaTextTime}>{formatTimeAgo(item.timestamp)}</Text>
           </View>
         </View>
       </View>
 
-      {/* Footer highlighting AI match and Hidden clue security */}
+      {/* Card Footer: Security & AI Match Status */}
       <View style={styles.footerRow}>
         <View style={styles.securityHint}>
-          <Lock size={12} color={COLORS.textMuted} />
-          <Text style={styles.securityText}>Hidden clue protected</Text>
+          <Lock size={12} color={COLORS.primary} />
+          <Text style={styles.securityText}>Hidden Clue Protected</Text>
         </View>
 
         {matchCount > 0 ? (
           <View style={styles.matchBadge}>
-            <Sparkles size={12} color={COLORS.primary} />
-            <Text style={styles.matchText}>{matchCount} AI Match{matchCount > 1 ? 'es' : ''}</Text>
+            <Sparkles size={13} color="#FFF" />
+            <Text style={styles.matchText}>
+              {matchCount} AI Match{matchCount > 1 ? 'es' : ''}
+            </Text>
           </View>
         ) : (
-          <ChevronRight size={16} color={COLORS.textMuted} />
+          <View style={styles.inspectHint}>
+            <Text style={styles.inspectHintText}>View Details</Text>
+            <ChevronRight size={14} color={COLORS.primary} />
+          </View>
         )}
       </View>
     </TouchableOpacity>
@@ -160,11 +179,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
+    ...SHADOWS.sm,
   },
   headerRow: {
     flexDirection: 'row',
@@ -180,12 +195,13 @@ const styles = StyleSheet.create({
   typeBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: RADIUS.sm,
+    borderRadius: RADIUS.xs,
+    borderWidth: 1,
   },
   typeText: {
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.6,
   },
   categoryBadge: {
     flexDirection: 'row',
@@ -194,7 +210,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.divider,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: RADIUS.sm,
+    borderRadius: RADIUS.xs,
   },
   categoryText: {
     fontSize: 11,
@@ -203,14 +219,27 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     backgroundColor: COLORS.divider,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: RADIUS.sm,
+    borderRadius: RADIUS.full,
+  },
+  statusReturned: {
+    backgroundColor: COLORS.returnedSoft,
+    borderWidth: 1,
+    borderColor: COLORS.returnedBorder,
+  },
+  statusVerifying: {
+    backgroundColor: COLORS.verifiedSoft,
+    borderWidth: 1,
+    borderColor: COLORS.verifiedBorder,
   },
   statusText: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 10,
+    fontWeight: '700',
     color: COLORS.textSecondary,
     textTransform: 'capitalize',
   },
@@ -218,19 +247,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
   },
-  image: {
-    width: 80,
-    height: 80,
+  imageContainer: {
+    width: 84,
+    height: 84,
     borderRadius: RADIUS.md,
+    overflow: 'hidden',
     backgroundColor: COLORS.divider,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
   },
   imagePlaceholder: {
-    width: 80,
-    height: 80,
+    width: 84,
+    height: 84,
     borderRadius: RADIUS.md,
     backgroundColor: COLORS.divider,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   details: {
     flex: 1,
@@ -238,14 +276,15 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.textPrimary,
-    marginBottom: 4,
+    lineHeight: 20,
+    marginBottom: 3,
   },
   description: {
-    fontSize: 13,
+    fontSize: 12,
     color: COLORS.textSecondary,
-    lineHeight: 18,
+    lineHeight: 16,
     marginBottom: 6,
   },
   metaRow: {
@@ -255,14 +294,21 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   metaText: {
-    fontSize: 12,
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+    flexShrink: 1,
+  },
+  metaTextTime: {
+    fontSize: 11,
     color: COLORS.textMuted,
+    fontWeight: '500',
   },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: SPACING.md,
+    marginTop: SPACING.sm,
     paddingTop: SPACING.sm,
     borderTopWidth: 1,
     borderTopColor: COLORS.divider,
@@ -271,25 +317,41 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-  },
-  securityText: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-    fontWeight: '500',
-  },
-  matchBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
     backgroundColor: COLORS.primarySoft,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: RADIUS.full,
+    borderWidth: 1,
+    borderColor: COLORS.primaryBorder,
+  },
+  securityText: {
+    fontSize: 10,
+    color: COLORS.primaryDark,
+    fontWeight: '700',
+  },
+  matchBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: RADIUS.full,
+    ...SHADOWS.sm,
   },
   matchText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#FFF',
+  },
+  inspectHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  inspectHintText: {
     fontSize: 12,
     fontWeight: '700',
     color: COLORS.primary,
   },
 });
-

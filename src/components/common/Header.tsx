@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ShieldCheck, LogIn } from 'lucide-react-native';
-import { COLORS, SPACING, RADIUS } from '../../styles/theme';
+import { ShieldCheck, LogIn, Sparkles, Activity } from 'lucide-react-native';
+import { COLORS, SPACING, RADIUS, SHADOWS } from '../../styles/theme';
 import { useApp } from '../../context/AppContext';
 
 interface HeaderProps {
@@ -23,8 +23,14 @@ export const Header: React.FC<HeaderProps> = ({
     <View style={styles.container}>
       <View style={styles.left}>
         <View style={styles.badgeRow}>
-          <ShieldCheck size={20} color={COLORS.primary} />
+          <View style={styles.brandIconCircle}>
+            <ShieldCheck size={18} color="#FFF" />
+          </View>
           <Text style={styles.brandTitle}>{title}</Text>
+          <View style={styles.liveTag}>
+            <View style={styles.liveDot} />
+            <Text style={styles.liveText}>CAMPUS LIVE</Text>
+          </View>
         </View>
         {subtitle ? <Text style={styles.brandSubtitle}>{subtitle}</Text> : null}
       </View>
@@ -53,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({
           activeOpacity={0.8}
           onPress={() => router.push('/(auth)/login')}
         >
-          <LogIn size={13} color={COLORS.primary} />
+          <LogIn size={13} color="#FFF" />
           <Text style={styles.loginBtnText}>Sign In</Text>
         </TouchableOpacity>
       ) : null}
@@ -67,10 +73,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.md,
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.sm,
     backgroundColor: COLORS.card,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
+    ...SHADOWS.sm,
   },
   left: {
     flex: 1,
@@ -78,37 +86,69 @@ const styles = StyleSheet.create({
   badgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+  },
+  brandIconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: RADIUS.sm,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.sm,
   },
   brandTitle: {
     fontSize: 20,
-    fontWeight: '800',
+    fontWeight: '900',
     color: COLORS.primary,
+    letterSpacing: 0.5,
+  },
+  liveTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.foundSoft,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
+    borderColor: COLORS.foundBorder,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.found,
+  },
+  liveText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: COLORS.found,
     letterSpacing: 0.5,
   },
   brandSubtitle: {
     fontSize: 12,
     color: COLORS.textMuted,
-    marginTop: 2,
+    marginTop: 3,
     fontWeight: '500',
   },
   profileContainer: {
     position: 'relative',
   },
   avatar: {
-    width: 40,
-    height: 40,
+    width: 42,
+    height: 42,
     borderRadius: RADIUS.full,
     borderWidth: 2,
-    borderColor: COLORS.primaryLight,
+    borderColor: COLORS.primaryBorder,
   },
   trustBadge: {
     position: 'absolute',
-    bottom: -4,
-    right: -4,
+    bottom: -3,
+    right: -3,
     backgroundColor: COLORS.found,
     borderRadius: RADIUS.full,
-    paddingHorizontal: 4,
+    paddingHorizontal: 5,
     paddingVertical: 1,
     borderWidth: 1.5,
     borderColor: COLORS.card,
@@ -116,23 +156,21 @@ const styles = StyleSheet.create({
   trustText: {
     color: '#FFF',
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   loginBtnHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: COLORS.primarySoft,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    gap: 5,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     borderRadius: RADIUS.md,
-    borderWidth: 1,
-    borderColor: COLORS.primaryLight,
+    ...SHADOWS.sm,
   },
   loginBtnText: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.primary,
+    color: '#FFF',
   },
 });
-

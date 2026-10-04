@@ -12,9 +12,10 @@ import {
   Camera,
   Compass,
   Calendar,
+  Layers,
 } from 'lucide-react-native';
 import { MatchResult } from '../../types/retrivo';
-import { COLORS, SPACING, RADIUS } from '../../styles/theme';
+import { COLORS, SPACING, RADIUS, SHADOWS } from '../../styles/theme';
 
 interface MatchCardProps {
   match: MatchResult;
@@ -32,18 +33,18 @@ export const MatchCard: React.FC<MatchCardProps> = ({
 
   if (!lost_item || !found_item) return null;
 
-  // Determine badge styling based on score (0-10)
   const isHighMatch = match_score >= 8.5;
   const isMediumMatch = match_score >= 6.0 && match_score < 8.5;
   const scoreColor = isHighMatch ? COLORS.found : isMediumMatch ? COLORS.lost : COLORS.textMuted;
   const scoreBg = isHighMatch ? COLORS.foundSoft : isMediumMatch ? COLORS.lostSoft : COLORS.divider;
+  const scoreBorder = isHighMatch ? COLORS.foundBorder : isMediumMatch ? COLORS.lostBorder : COLORS.border;
 
   return (
     <View style={styles.card}>
       {/* Header Banner */}
       <View style={styles.header}>
         <View style={styles.scoreRow}>
-          <View style={[styles.scoreBadge, { backgroundColor: scoreBg }]}>
+          <View style={[styles.scoreBadge, { backgroundColor: scoreBg, borderColor: scoreBorder }]}>
             <Sparkles size={14} color={scoreColor} />
             <Text style={[styles.scoreText, { color: scoreColor }]}>
               {match_score.toFixed(1)} / 10.0 Match
@@ -63,7 +64,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
           style={styles.expandButton}
         >
           <Text style={styles.expandText}>
-            {expanded ? 'Hide Breakdown' : 'View AI Breakdown'}
+            {expanded ? 'Hide Signals' : 'View AI Signals'}
           </Text>
           {expanded ? (
             <ChevronUp size={14} color={COLORS.primary} />
@@ -77,8 +78,8 @@ export const MatchCard: React.FC<MatchCardProps> = ({
       <View style={styles.comparisonGrid}>
         {/* Lost Item */}
         <View style={styles.itemBox}>
-          <View style={[styles.typePill, { backgroundColor: COLORS.lostSoft }]}>
-            <Text style={[styles.typePillText, { color: COLORS.lost }]}>LOST</Text>
+          <View style={[styles.typePill, { backgroundColor: COLORS.lostSoft, borderColor: COLORS.lostBorder }]}>
+            <Text style={[styles.typePillText, { color: COLORS.lost }]}>LOST ITEM</Text>
           </View>
           {lost_item.image_url ? (
             <Image source={{ uri: lost_item.image_url }} style={styles.itemImage} />
@@ -89,24 +90,25 @@ export const MatchCard: React.FC<MatchCardProps> = ({
             {lost_item.title}
           </Text>
           <View style={styles.metaRow}>
-            <MapPin size={11} color={COLORS.textMuted} />
+            <MapPin size={11} color={COLORS.primary} />
             <Text style={styles.itemMeta} numberOfLines={1}>
               {lost_item.campus_location.building}
             </Text>
           </View>
         </View>
 
-        {/* Center Arrow */}
+        {/* Center Connection Arrow */}
         <View style={styles.centerDivider}>
           <View style={styles.arrowCircle}>
             <ArrowRight size={14} color={COLORS.primary} />
           </View>
+          <Text style={styles.matchVsText}>PAIRED</Text>
         </View>
 
         {/* Found Item */}
         <View style={styles.itemBox}>
-          <View style={[styles.typePill, { backgroundColor: COLORS.foundSoft }]}>
-            <Text style={[styles.typePillText, { color: COLORS.found }]}>FOUND</Text>
+          <View style={[styles.typePill, { backgroundColor: COLORS.foundSoft, borderColor: COLORS.foundBorder }]}>
+            <Text style={[styles.typePillText, { color: COLORS.found }]}>FOUND ITEM</Text>
           </View>
           {found_item.image_url ? (
             <Image source={{ uri: found_item.image_url }} style={styles.itemImage} />
@@ -117,7 +119,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
             {found_item.title}
           </Text>
           <View style={styles.metaRow}>
-            <MapPin size={11} color={COLORS.textMuted} />
+            <MapPin size={11} color={COLORS.found} />
             <Text style={styles.itemMeta} numberOfLines={1}>
               {found_item.campus_location.building}
             </Text>
@@ -128,12 +130,15 @@ export const MatchCard: React.FC<MatchCardProps> = ({
       {/* Multimodal Score Breakdown (Expandable) */}
       {expanded && (
         <View style={styles.breakdownContainer}>
-          <Text style={styles.breakdownTitle}>Multimodal Signal Breakdown</Text>
+          <View style={styles.breakdownHeaderRow}>
+            <Layers size={13} color={COLORS.primary} />
+            <Text style={styles.breakdownTitle}>Multimodal Signal Breakdown</Text>
+          </View>
 
           <View style={styles.signalRow}>
             <View style={styles.signalLabel}>
               <FileText size={13} color={COLORS.textSecondary} />
-              <Text style={styles.signalText}>Text & Semantic Match</Text>
+              <Text style={styles.signalText}>Text & Description (35%)</Text>
             </View>
             <View style={styles.barTrack}>
               <View
@@ -151,13 +156,13 @@ export const MatchCard: React.FC<MatchCardProps> = ({
           <View style={styles.signalRow}>
             <View style={styles.signalLabel}>
               <Camera size={13} color={COLORS.textSecondary} />
-              <Text style={styles.signalText}>Visual Feature Match</Text>
+              <Text style={styles.signalText}>Visual CLIP Vector (40%)</Text>
             </View>
             <View style={styles.barTrack}>
               <View
                 style={[
                   styles.barFill,
-                  { width: `${Math.round(breakdown.image_score * 100)}%` },
+                  { width: `${Math.round(breakdown.image_score * 100)}%`, backgroundColor: COLORS.found },
                 ]}
               />
             </View>
@@ -169,13 +174,13 @@ export const MatchCard: React.FC<MatchCardProps> = ({
           <View style={styles.signalRow}>
             <View style={styles.signalLabel}>
               <Compass size={13} color={COLORS.textSecondary} />
-              <Text style={styles.signalText}>Location Proximity</Text>
+              <Text style={styles.signalText}>Location Proximity (15%)</Text>
             </View>
             <View style={styles.barTrack}>
               <View
                 style={[
                   styles.barFill,
-                  { width: `${Math.round(breakdown.location_score * 100)}%` },
+                  { width: `${Math.round(breakdown.location_score * 100)}%`, backgroundColor: '#0284C7' },
                 ]}
               />
             </View>
@@ -187,13 +192,13 @@ export const MatchCard: React.FC<MatchCardProps> = ({
           <View style={styles.signalRow}>
             <View style={styles.signalLabel}>
               <Calendar size={13} color={COLORS.textSecondary} />
-              <Text style={styles.signalText}>Time Temporal Decay</Text>
+              <Text style={styles.signalText}>Time Temporal Decay (10%)</Text>
             </View>
             <View style={styles.barTrack}>
               <View
                 style={[
                   styles.barFill,
-                  { width: `${Math.round(breakdown.time_score * 100)}%` },
+                  { width: `${Math.round(breakdown.time_score * 100)}%`, backgroundColor: COLORS.returned },
                 ]}
               />
             </View>
@@ -217,7 +222,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
           style={styles.primaryButton}
           onPress={onInitiateClaim}
         >
-          <ShieldCheck size={14} color="#FFF" />
+          <ShieldCheck size={15} color="#FFF" />
           <Text style={styles.primaryButtonText}>Verify & Claim</Text>
         </TouchableOpacity>
       </View>
@@ -233,11 +238,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
+    ...SHADOWS.sm,
   },
   header: {
     flexDirection: 'row',
@@ -254,37 +255,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    paddingHorizontal: 8,
+    paddingHorizontal: 9,
     paddingVertical: 4,
     borderRadius: RADIUS.full,
+    borderWidth: 1,
   },
   scoreText: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '900',
+    letterSpacing: 0.3,
   },
   verifiedTag: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     backgroundColor: COLORS.primarySoft,
-    paddingHorizontal: 6,
+    paddingHorizontal: 7,
     paddingVertical: 3,
-    borderRadius: RADIUS.sm,
+    borderRadius: RADIUS.xs,
+    borderWidth: 1,
+    borderColor: COLORS.primaryBorder,
   },
   verifiedTagText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.primary,
   },
   expandButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: 4,
+    backgroundColor: COLORS.primarySoft,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: RADIUS.sm,
   },
   expandText: {
     fontSize: 11,
     color: COLORS.primary,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   comparisonGrid: {
     flexDirection: 'row',
@@ -294,65 +303,81 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     padding: SPACING.sm,
     marginBottom: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   itemBox: {
     flex: 1,
     alignItems: 'center',
   },
   typePill: {
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: RADIUS.sm,
+    borderRadius: RADIUS.xs,
     marginBottom: 6,
+    borderWidth: 1,
   },
   typePillText: {
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: '900',
+    letterSpacing: 0.5,
   },
   itemImage: {
-    width: 64,
-    height: 64,
-    borderRadius: RADIUS.sm,
+    width: 68,
+    height: 68,
+    borderRadius: RADIUS.md,
     marginBottom: 6,
     backgroundColor: COLORS.divider,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   imageFallback: {
-    width: 64,
-    height: 64,
-    borderRadius: RADIUS.sm,
+    width: 68,
+    height: 68,
+    borderRadius: RADIUS.md,
     backgroundColor: COLORS.divider,
     marginBottom: 6,
   },
   itemTitle: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.textPrimary,
     textAlign: 'center',
     marginBottom: 4,
+    lineHeight: 16,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
+    gap: 3,
   },
   itemMeta: {
     fontSize: 10,
     color: COLORS.textMuted,
+    fontWeight: '500',
   },
   centerDivider: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 2,
   },
   arrowCircle: {
-    width: 28,
-    height: 28,
+    width: 30,
+    height: 30,
     borderRadius: RADIUS.full,
     backgroundColor: COLORS.card,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: COLORS.primaryBorder,
     alignItems: 'center',
     justifyContent: 'center',
+    ...SHADOWS.sm,
+  },
+  matchVsText: {
+    fontSize: 8,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+    letterSpacing: 0.5,
   },
   breakdownContainer: {
     backgroundColor: COLORS.background,
@@ -360,13 +385,18 @@ const styles = StyleSheet.create({
     padding: SPACING.sm,
     marginVertical: SPACING.sm,
     borderWidth: 1,
-    borderColor: COLORS.divider,
+    borderColor: COLORS.border,
+  },
+  breakdownHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
   },
   breakdownTitle: {
     fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.xs,
+    fontWeight: '800',
+    color: COLORS.primaryDark,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -379,15 +409,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    width: 140,
+    width: 155,
   },
   signalText: {
     fontSize: 11,
     color: COLORS.textSecondary,
+    fontWeight: '500',
   },
   barTrack: {
     flex: 1,
-    height: 6,
+    height: 7,
     backgroundColor: COLORS.divider,
     borderRadius: RADIUS.full,
     marginHorizontal: 8,
@@ -400,7 +431,7 @@ const styles = StyleSheet.create({
   },
   signalValue: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.textPrimary,
     width: 35,
     textAlign: 'right',
@@ -412,7 +443,7 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 11,
     borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -422,23 +453,23 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.textSecondary,
   },
   primaryButton: {
     flex: 1.5,
     flexDirection: 'row',
-    paddingVertical: 10,
+    paddingVertical: 11,
     borderRadius: RADIUS.md,
     backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
+    ...SHADOWS.sm,
   },
   primaryButtonText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#FFF',
   },
 });
-
